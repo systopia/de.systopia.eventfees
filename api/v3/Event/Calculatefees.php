@@ -19,6 +19,7 @@
 function civicrm_api3_event_calculatefees($params) {
   $event_id = (int) $params['event_id'];
   $price_set_id = NULL;
+  $is_discount = 1;
 
   // first check if there is an active discount
   $discount_id = CRM_Core_BAO_Discount::findSet($event_id, 'civicrm_event');
@@ -30,6 +31,7 @@ function civicrm_api3_event_calculatefees($params) {
 
   // if no discount found: use the default
   if (empty($price_set_id)) {
+    $is_discount = 0;
     $price_set_id = CRM_Price_BAO_PriceSet::getFor('civicrm_event', $event_id);  
   }
 
@@ -46,7 +48,8 @@ function civicrm_api3_event_calculatefees($params) {
     return civicrm_api3_create_error("Price set [{price_set_id}] doesn't exist.");
   }
 
-  return civicrm_api3_create_success($price_set[$price_set_id]['fields']);
+  $dao = NULL;
+  return civicrm_api3_create_success($price_set[$price_set_id]['fields'], $params, 'Event', 'calculatefees', $dao, array('is_discount' => $is_discount));
 }
 
 /**
@@ -54,4 +57,5 @@ function civicrm_api3_event_calculatefees($params) {
  */
 function _civicrm_api3_event_calculatefees_spec(&$params) {
   $params['event_id']['api.required'] = 1;
+  $params['event_id']['title'] = 'Event ID';
 }
