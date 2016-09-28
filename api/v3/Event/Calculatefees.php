@@ -41,7 +41,17 @@ function civicrm_api3_event_calculatefees($params) {
   }
 
   // then load the valid price set
-  $price_set = CRM_Price_BAO_PriceSet::getSetDetail($price_set_id);
+  $price_set  = CRM_Price_BAO_PriceSet::getSetDetail($price_set_id);
+  
+  // add extra data that's not provided by the function above
+  $extra_data = civicrm_api3('PriceSet', 'getsingle', array('id' => $price_set_id));
+  $title      = $extra_data['title'];
+  foreach ($price_set[$price_set_id]['fields'] as &$fields) {
+    foreach ($fields['options'] as &$field) {
+      $field['priceset_title'] = $extra_data['title'];
+      $field['priceset_id']    = $extra_data['id'];
+    }
+  }
 
   // verify that we have a price set
   if (empty($price_set)) {
