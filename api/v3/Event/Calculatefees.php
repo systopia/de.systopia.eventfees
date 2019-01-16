@@ -61,7 +61,7 @@ function civicrm_api3_event_calculatefees($params) {
       $field['priceset_id']    = $extra_data['id'];
       // add the option count as extra data and set an is_full indicator.
       $field['participant_count'] = (key_exists($field['id'],$recordedOptionsCount) ? strval($recordedOptionsCount[$field['id']]) : "");
-      $field['is_full'] = (!key_exists($field['id'],$recordedOptionsCount) || !key_exists('max_value',$field) || $field['max_value'] > $recordedOptionsCount[$field['id']] ? "false" : "true");
+      $field['is_full'] = (!key_exists($field['id'],$recordedOptionsCount) || !key_exists('max_value',$field) || $field['max_value'] >= $recordedOptionsCount[$field['id']] ? "false" : "true");
     }
   }
 
