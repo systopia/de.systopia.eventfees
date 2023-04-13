@@ -24,5 +24,9 @@
   <comments>Created for viwedis</comments>
   <civix>
     <namespace>CRM/Eventfees</namespace>
+    <format>23.02.1</format>
   </civix>
+  <classloader>
+    <psr4 prefix="Civi\" path="Civi"/>
+  </classloader>
 </extension>
