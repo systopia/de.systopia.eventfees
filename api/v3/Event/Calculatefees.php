@@ -32,7 +32,7 @@ function civicrm_api3_event_calculatefees($params) {
   // if no discount found: use the default
   if (empty($price_set_id)) {
     $is_discount = 0;
-    $price_set_id = CRM_Price_BAO_PriceSet::getFor('civicrm_event', $event_id);  
+    $price_set_id = CRM_Price_BAO_PriceSet::getFor('civicrm_event', $event_id);
   }
 
   // verify that we have a price set
@@ -42,14 +42,26 @@ function civicrm_api3_event_calculatefees($params) {
 
   // then load the valid price set
   $price_set  = CRM_Price_BAO_PriceSet::getSetDetail($price_set_id);
-  
+
   // add extra data that's not provided by the function above
   $extra_data = civicrm_api3('PriceSet', 'getsingle', array('id' => $price_set_id));
   $title      = $extra_data['title'];
+
+  // option count
+  $recordedOptionsCount = CRM_Event_BAO_Participant::priceSetOptionsCount($event_id, []);
+
   foreach ($price_set[$price_set_id]['fields'] as &$fields) {
+    // adding an expiration indicator
+    $now = strtotime('now');
+    $from = (key_exists("active_on",$fields) ? strtotime($fields['active_on']) : strtotime("-30 years"));
+    $till = (key_exists("expire_on",$fields) ? strtotime($fields['expire_on']) : strtotime("+30 years"));
+    $fields['is_expired'] = ($now > $from && $now < $till) ? "false" : "true";
     foreach ($fields['options'] as &$field) {
       $field['priceset_title'] = $extra_data['title'];
       $field['priceset_id']    = $extra_data['id'];
+      // add the option count as extra data and set an is_full indicator.
+      $field['participant_count'] = (key_exists($field['id'],$recordedOptionsCount) ? strval($recordedOptionsCount[$field['id']]) : "");
+      $field['is_full'] = (!key_exists($field['id'],$recordedOptionsCount) || !key_exists('max_value',$field) || $field['max_value'] >= $recordedOptionsCount[$field['id']] ? "false" : "true");
     }
   }
 
@@ -69,3 +81,5 @@ function _civicrm_api3_event_calculatefees_spec(&$params) {
   $params['event_id']['api.required'] = 1;
   $params['event_id']['title'] = 'Event ID';
 }
+
+
